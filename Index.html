@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SUT - Simulador de Liquidación Laboral | Ministerio del Trabajo</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --azul-mdt: #003876;
+    --azul-medio: #005BAA;
+    --azul-claro: #0072CE;
+    --azul-suave: #E8F0F8;
+    --amarillo-ec: #FFD100;
+    --rojo-ec: #EF3340;
+    --verde-ok: #1A7A4A;
+    --verde-suave: #E6F4ED;
+    --naranja-alerta: #D97706;
+    --naranja-suave: #FEF3C7;
+    --rojo-suave: #FEE2E2;
+    --gris-900: #111827;
+    --gris-700: #374151;
+    --gris-500: #6B7280;
+    --gris-300: #D1D5DB;
+    --gris-100: #F3F4F6;
+    --gris-50: #F9FAFB;
+    --blanco: #FFFFFF;
+    --sombra-sm: 0 1px 3px rgba(0,56,118,0.10);
+    --sombra-md: 0 4px 16px rgba(0,56,118,0.12);
+    --sombra-lg: 0 8px 32px rgba(0,56,118,0.16);
+    --radio: 8px;
+    --radio-lg: 12px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: #EEF2F8;
+    color: var(--gris-900);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--azul-mdt);
+    color: white;
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--sombra-lg);
+  }
+  .header-top {
+    background: linear-gradient(135deg, #002960 0%, var(--azul-mdt) 60%, #004A9F 100%);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 3px solid var(--amarillo-ec);
+  }
+  .header-escudo {
+    width: 44px; height: 44px;
+    background: var(--amarillo-ec);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .header-titulo h1 {
+    font-size: 16px; font-weight: 700; letter-spacing: 0.3px;
+  }
+  .header-titulo p {
+    font-size: 11px; opacity: 0.75; font-weight: 400; letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .header-badge {
+    margin-left: auto;
+    background: rgba(255,209,0,0.15);
+    border: 1px solid rgba(255,209,0,0.4);
+    color: var(--amarillo-ec);
+    font-size: 10px; font-weight: 700;
+    padding: 4px 10px; border-radius: 20px;
+    letter-spacing: 0.5px; text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .header-nav {
+    background: var(--azul-medio);
+    padding: 0 24px;
+    display: flex; gap: 0; overflow-x: auto;
+  }
+  .nav-tab {
+    padding: 10px 16px;
+    color: rgba(255,255,255,0.75);
+    font-size: 12px; font-weight: 600;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .nav-tab:hover { color: white; background: rgba(255,255,255,0.08); }
+  .nav-tab.active { color: var(--amarillo-ec); border-bottom-color: var(--amarillo-ec); }
+
+  /* ── LAYOUT ── */
+  .app-container {
+    max-width: 1200px; margin: 0 auto;
+    padding: 24px 16px;
+  }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; animation: fadeUp 0.3s ease; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: white;
+    border-radius: var(--radio-lg);
+    box-shadow: var(--sombra-sm);
+    border: 1px solid rgba(0,56,118,0.08);
+    overflow: hidden;
+  }
+  .card-header {
+    background: linear-gradient(135deg, var(--azul-mdt) 0%, var(--azul-medio) 100%);
+    color: white;
+    padding: 14px 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .card-header h2 { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .card-header .icon { font-size: 18px; }
+  .card-body { padding: 20px; }
+
+  /* ── DASHBOARD ── */
+  .dashboard-welcome {
+    background: linear-gradient(135deg, var(--azul-mdt) 0%, #004A9F 50%, var(--azul-claro) 100%);
+    border-radius: var(--radio-lg);
+    color: white;
+    padding: 32px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--sombra-lg);
+  }
+  .dashboard-welcome::before {
+    content: '';
+    position: absolute; right: -30px; top: -30px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+  }
+  .dashboard-welcome::after {
+    content: '';
+    position: absolute; right: 60px; bottom: -40px;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: rgba(255,209,0,0.08);
+  }
+  .welcome-tag {
+    background: rgba(255,209,0,0.2);
+    border: 1px solid rgba(255,209,0,0.4);
+    color: var(--amarillo-ec);
+    font-size: 11px; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px;
+    display: inline-block; margin-bottom: 10px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .dashboard-welcome h2 {
+    font-size: 24px; font-weight: 700; margin-bottom: 6px;
+    font-family: 'Source Serif 4', serif;
+  }
+  .dashboard-welcome p { opacity: 0.8; font-size: 14px; max-width: 500px; }
+  .legal-refs {
+    margin-top: 16px;
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .legal-ref {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.9);
+    font-size: 10px; padding: 3px 8px; border-radius: 4px;
+    font-weight: 600;
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .dash-action {
+    background: white;
+    border-radius: var(--radio-lg);
+    padding: 24px 20px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    box-shadow: var(--sombra-sm);
+    transition: all 0.25s;
+    text-align: center;
+  }
+  .dash-action:hover {
+    border-color: var(--azul-claro);
+    transform: translateY(-3px);
+    box-shadow: var(--sombra-lg);
+  }
+  .dash-action .da-icon {
+    font-size: 36px; margin-bottom: 12px;
+    display: block;
+    filter: drop-shadow(0 2px 4px rgba(0,56,118,0.2));
+  }
+  .dash-action h3 { font-size: 14px; font-weight: 700; color: var(--azul-mdt); margin-bottom: 4px; }
+  .dash-action p { font-size: 12px; color: var(--gris-500); }
+  .da-primary { border-color: var(--azul-claro) !important; background: var(--azul-suave) !important; }
+
+  .stats-row {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px; margin-bottom: 24px;
+  }
+  .stat-card {
+    background: white; border-radius: var(--radio); padding: 16px;
+    border-left: 4px solid var(--azul-claro);
+    box-shadow: var(--sombra-sm);
+    border: 1px solid rgba(0,56,118,0.08);
+    border-left: 4px solid var(--azul-claro);
+  }
+  .stat-card .s-label { font-size: 11px; color: var(--gris-500); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  .stat-card .s-value { font-size: 24px; font-weight: 700; color: var(--azul-mdt); margin-top: 4px; }
+
+  /* ── FORM ── */
+  .form-section {
+    margin-bottom: 24px;
+  }
+  .section-title {
+    font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    color: var(--azul-mdt);
+    border-bottom: 2px solid var(--azul-suave);
+    padding-bottom: 8px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px; height: 16px;
+    background: var(--azul-claro);
+    border-radius: 2px;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .form-group {
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .form-group.full { grid-column: 1 / -1; }
+  label {
+    font-size: 12px; font-weight: 600; color: var(--gris-700);
+    display: flex; align-items: center; gap: 4px;
+  }
+  label .req { color: var(--rojo-ec); }
+  label .art { 
+    font-size: 10px; color: var(--azul-claro); font-weight: 500;
+    background: var(--azul-suave); padding: 1px 5px; border-radius: 3px;
+    margin-left: auto;
+  }
+  input, select, textarea {
+    border: 1.5px solid var(--gris-300);
+    border-radius: 6px;
+    padding: 8px 11px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--gris-900);
+    background: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    width: 100%;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--azul-claro);
+    box-shadow: 0 0 0 3px rgba(0,114,206,0.12);
+  }
+  input[type="date"] { color: var(--gris-700); }
+  .input-prefix {
+    display: flex;
+    border: 1.5px solid var(--gris-300);
+    border-radius: 6px; overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .input-prefix:focus-within {
+    border-color: var(--azul-claro);
+    box-shadow: 0 0 0 3px rgba(0,114,206,0.12);
+  }
+  .input-prefix span {
+    background: var(--gris-100); color: var(--gris-500);
+    padding: 8px 10px; font-size: 12px; font-weight: 700;
+    border-right: 1.5px solid var(--gris-300);
+    white-space: nowrap;
+  }
+  .input-prefix input { border: none !important; border-radius: 0 !important; box-shadow: none !important; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 18px;
+    border-radius: 6px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    font-family: inherit;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--azul-mdt); color: white;
+    box-shadow: 0 2px 8px rgba(0,56,118,0.3);
+  }
+  .btn-primary:hover { background: #002560; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,56,118,0.4); }
+  .btn-success {
+    background: var(--verde-ok); color: white;
+    box-shadow: 0 2px 8px rgba(26,122,74,0.3);
+  }
+  .btn-success:hover { background: #145E38; }
+  .btn-warning {
+    background: var(--naranja-alerta); color: white;
+  }
+  .btn-outline {
+    background: white; color: var(--azul-mdt);
+    border: 2px solid var(--azul-mdt);
+  }
+  .btn-outline:hover { background: var(--azul-suave); }
+  .btn-danger { background: var(--rojo-ec); color: white; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-lg { padding: 12px 24px; font-size: 15px; }
+
+  .btn-row {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    padding-top: 16px;
+    border-top: 1px solid var(--gris-100);
+    margin-top: 8px;
+  }
+
+  /* ── ALERTS ── */
+  .alert {
+    border-radius: var(--radio);
+    padding: 12px 16px;
+    display: flex; gap: 12px; align-items: flex-start;
+    font-size: 13px;
+    margin-bottom: 10px;
+    border-left: 4px solid;
+    animation: fadeUp 0.3s ease;
+  }
+  .alert-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .alert-content { flex: 1; }
+  .alert-title { font-weight: 700; margin-bottom: 2px; }
+  .alert-info { background: var(--azul-suave); border-color: var(--azul-claro); color: var(--azul-mdt); }
+  .alert-success { background: var(--verde-suave); border-color: var(--verde-ok); color: #0F5132; }
+  .alert-warning { background: var(--naranja-suave); border-color: var(--naranja-alerta); color: #92400E; }
+  .alert-danger { background: var(--rojo-suave); border-color: var(--rojo-ec); color: #991B1B; }
+
+  /* ── RESULTADO / TABLA ── */
+  .result-tabla {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px;
+  }
+  .result-tabla thead { background: var(--azul-mdt); color: white; }
+  .result-tabla th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .result-tabla tbody tr { border-bottom: 1px solid var(--gris-100); transition: background 0.15s; }
+  .result-tabla tbody tr:hover { background: var(--azul-suave); }
+  .result-tabla td { padding: 9px 14px; }
+  .result-tabla .art-ref { font-size: 10px; color: var(--azul-claro); font-weight: 600; }
+  .result-tabla .monto { font-weight: 700; text-align: right; }
+  .result-tabla .monto.positivo { color: var(--verde-ok); }
+  .result-tabla .monto.negativo { color: var(--rojo-ec); }
+  .result-tabla .total-row { background: var(--azul-mdt) !important; color: white; }
+  .result-tabla .total-row td { font-weight: 700; font-size: 15px; }
+  .result-tabla .na { color: var(--gris-500); font-style: italic; }
+
+  /* ── ACTA ── */
+  .acta {
+    background: white;
+    border-radius: var(--radio-lg);
+    box-shadow: var(--sombra-lg);
+    max-width: 820px; margin: 0 auto;
+    overflow: hidden;
+  }
+  .acta-header {
+    background: linear-gradient(135deg, var(--azul-mdt) 0%, var(--azul-medio) 100%);
+    padding: 28px 40px;
+    color: white;
+    display: flex; align-items: flex-start; gap: 20px;
+    border-bottom: 6px solid var(--amarillo-ec);
+  }
+  .acta-logo-box {
+    background: white; border-radius: 8px;
+    padding: 10px 14px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    min-width: 90px; text-align: center;
+  }
+  .acta-logo-box .flag { font-size: 24px; }
+  .acta-logo-box .inst { font-size: 9px; color: var(--azul-mdt); font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; }
+  .acta-header-text { flex: 1; }
+  .acta-header-text .sut-badge {
+    background: rgba(255,209,0,0.2);
+    border: 1px solid rgba(255,209,0,0.4);
+    color: var(--amarillo-ec);
+    font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 3px;
+    display: inline-block; margin-bottom: 6px; letter-spacing: 0.5px;
+  }
+  .acta-header-text h2 {
+    font-size: 18px; font-weight: 800; letter-spacing: 0.3px;
+    font-family: 'Source Serif 4', serif;
+  }
+  .acta-header-text p { font-size: 12px; opacity: 0.8; margin-top: 3px; }
+  .acta-num { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 8px 14px; text-align: right; }
+  .acta-num .n-label { font-size: 10px; opacity: 0.7; text-transform: uppercase; }
+  .acta-num .n-val { font-size: 18px; font-weight: 800; }
+  .acta-num .n-fecha { font-size: 11px; opacity: 0.7; }
+
+  .acta-body { padding: 32px 40px; }
+  .acta-section { margin-bottom: 24px; }
+  .acta-section-title {
+    font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--azul-mdt); border-bottom: 2px solid var(--azul-suave);
+    padding-bottom: 6px; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .acta-section-title span { font-size: 16px; }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .info-item { padding: 10px 14px; background: var(--gris-50); border-radius: 6px; border: 1px solid var(--gris-100); }
+  .info-item .i-label { font-size: 10px; color: var(--gris-500); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+  .info-item .i-val { font-size: 13px; color: var(--gris-900); font-weight: 600; margin-top: 2px; }
+  .causal-box {
+    background: var(--azul-suave); border: 2px solid var(--azul-claro);
+    border-radius: 8px; padding: 14px 18px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .causal-box .causal-icon { font-size: 28px; }
+  .causal-box .c-title { font-size: 11px; color: var(--azul-mdt); font-weight: 700; text-transform: uppercase; }
+  .causal-box .c-val { font-size: 15px; color: var(--azul-mdt); font-weight: 800; margin-top: 2px; }
+
+  .acta-totales {
+    background: linear-gradient(135deg, var(--azul-mdt) 0%, var(--azul-medio) 100%);
+    border-radius: 10px; padding: 20px 24px;
+    color: white; text-align: center; margin-bottom: 24px;
+  }
+  .acta-totales .t-label { font-size: 12px; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px; }
+  .acta-totales .t-monto { font-size: 36px; font-weight: 800; margin: 4px 0; }
+  .acta-totales .t-letras { font-size: 12px; opacity: 0.8; font-style: italic; }
+
+  .firmas {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 32px;
+  }
+  .firma-box { text-align: center; }
+  .firma-linea { height: 50px; border-bottom: 1.5px solid var(--gris-900); margin-bottom: 6px; }
+  .firma-box p { font-size: 11px; color: var(--gris-700); }
+  .firma-box strong { font-size: 12px; display: block; }
+
+  .acta-footer {
+    background: var(--gris-50); border-top: 1px solid var(--gris-200);
+    padding: 16px 40px; font-size: 11px; color: var(--gris-500);
+    text-align: center;
+  }
+
+  /* ── HISTORIAL ── */
+  .hist-item {
+    background: white; border-radius: var(--radio);
+    padding: 16px; border: 1px solid var(--gris-100);
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; transition: all 0.2s;
+    box-shadow: var(--sombra-sm);
+    margin-bottom: 10px;
+  }
+  .hist-item:hover { border-color: var(--azul-claro); box-shadow: var(--sombra-md); }
+  .hist-avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--azul-mdt); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700; flex-shrink: 0;
+  }
+  .hist-info { flex: 1; }
+  .hist-info h3 { font-size: 14px; font-weight: 700; color: var(--gris-900); }
+  .hist-info p { font-size: 12px; color: var(--gris-500); }
+  .hist-monto { font-size: 16px; font-weight: 800; color: var(--verde-ok); }
+  .hist-date { font-size: 11px; color: var(--gris-500); }
+  .hist-causal { font-size: 11px; font-weight: 600; color: var(--azul-claro); }
+
+  /* CHIPS */
+  .chip {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px;
+  }
+  .chip-info { background: var(--azul-suave); color: var(--azul-mdt); }
+  .chip-success { background: var(--verde-suave); color: var(--verde-ok); }
+  .chip-warn { background: var(--naranja-suave); color: var(--naranja-alerta); }
+  .chip-danger { background: var(--rojo-suave); color: var(--rojo-ec); }
+
+  /* BREADCRUMB */
+  .breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--gris-500);
+    margin-bottom: 16px;
+  }
+  .breadcrumb span { color: var(--azul-claro); font-weight: 600; cursor: pointer; }
+  .breadcrumb span:hover { text-decoration: underline; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center; padding: 60px 20px; color: var(--gris-500);
+  }
+  .empty-state .es-icon { font-size: 56px; margin-bottom: 12px; opacity: 0.4; }
+  .empty-state h3 { font-size: 18px; color: var(--gris-700); margin-bottom: 6px; }
+  .empty-state p { font-size: 13px; }
+
+  /* INSPECTORBOT */
+  .inspector-panel {
+    background: linear-gradient(135deg, #1E3A5F 0%, #0F2A47 100%);
+    border-radius: var(--radio-lg);
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    color: white;
+    display: flex; align-items: flex-start; gap: 14px;
+    box-shadow: var(--sombra-md);
+  }
+  .inspector-avatar {
+    font-size: 32px; flex-shrink: 0;
+  }
+  .inspector-content h3 {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--amarillo-ec); font-weight: 700; margin-bottom: 4px;
+  }
+  .inspector-content p { font-size: 13px; opacity: 0.9; }
+  .inspector-alerts { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+  .inspector-alert {
+    background: rgba(255,255,255,0.08);
+    border-left: 3px solid;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  .ia-error { border-color: #FC5C65; }
+  .ia-warn { border-color: var(--amarillo-ec); }
+  .ia-ok { border-color: #26de81; }
+
+  /* PRINT */
+  @media print {
+    .header, .header-nav, .btn-row, .page:not(.active) { display: none !important; }
+    .acta { box-shadow: none; }
+    body { background: white; }
+  }
+
+  @media (max-width: 640px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .info-grid { grid-template-columns: 1fr; }
+    .firmas { grid-template-columns: 1fr; }
+    .acta-header { flex-direction: column; }
+    .acta-body { padding: 20px; }
+    .dashboard-welcome { padding: 20px; }
+    .dashboard-welcome h2 { font-size: 18px; }
+  }
+
+  .loading-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,56,118,0.7);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 999; color: white;
+  }
+  .loading-spinner {
+    width: 48px; height: 48px;
+    border: 4px solid rgba(255,255,255,0.2);
+    border-top-color: var(--amarillo-ec);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 14px; font-weight: 600; }
+
+  .progress-steps {
+    display: flex; gap: 0; margin-bottom: 24px;
+    background: white; border-radius: var(--radio-lg);
+    padding: 16px 20px; box-shadow: var(--sombra-sm);
+    overflow-x: auto;
+  }
+  .step {
+    display: flex; align-items: center; gap: 10px; flex: 1;
+    min-width: 120px;
+  }
+  .step-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--gris-200); color: var(--gris-500);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; flex-shrink: 0; z-index: 1;
+  }
+  .step.done .step-num { background: var(--verde-ok); color: white; }
+  .step.active .step-num { background: var(--azul-claro); color: white; }
+  .step-label { font-size: 11px; font-weight: 600; color: var(--gris-500); }
+  .step.done .step-label, .step.active .step-label { color: var(--gris-900); }
+  .step-line { flex: 1; height: 2px; background: var(--gris-200); margin: 0 8px; }
+  .step.done .step-line { background: var(--verde-ok); }
+
+  .numero-letras { font-size: 11px; color: var(--gris-500); font-style: italic; margin-top: 3px; }
+
+  select option { padding: 6px; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-top">
+    <div class="header-escudo">🏛️</div>
+    <div class="header-titulo">
+      <h1>MINISTERIO DEL TRABAJO — SISTEMA ÚNICO DE TRABAJO</h1>
+      <p>Simulador Académico de Liquidación de Haberes | Ecuador</p>
+    </div>
+    <div class="header-badge">🎓 Versión Académica</div>
+  </div>
+  <nav class="header-nav">
+    <div class="nav-tab active" onclick="showPage('dashboard')" id="tab-dashboard">🏠 Inicio</div>
+    <div class="nav-tab" onclick="showPage('formulario')" id="tab-formulario">📋 Nueva Liquidación</div>
+    <div class="nav-tab" onclick="showPage('resultados')" id="tab-resultados">🧮 Resultados</div>
+    <div class="nav-tab" onclick="showPage('acta')" id="tab-acta">📄 Acta de Finiquito</div>
+    <div class="nav-tab" onclick="showPage('historial')" id="tab-historial">📁 Historial</div>
+  </nav>
+</header>
+
+<div class="app-container">
+
+  <!-- ═══════════ DASHBOARD ═══════════ -->
+  <div id="page-dashboard" class="page active">
+    <div class="dashboard-welcome">
+      <div class="welcome-tag">🇪🇨 SUT — Simulador Académico</div>
+      <h2>Simulador de Liquidación Laboral</h2>
+      <p>Practica el cálculo de actas de finiquito según el Código del Trabajo del Ecuador. Herramienta educativa para estudiantes de Talento Humano, Contabilidad y Tributación.</p>
+      <div class="legal-refs">
+        <span class="legal-ref">Art. 55 Horas Extras</span>
+        <span class="legal-ref">Art. 69 Vacaciones</span>
+        <span class="legal-ref">Art. 111 Décimo Tercero</span>
+        <span class="legal-ref">Art. 113 Décimo Cuarto</span>
+        <span class="legal-ref">Art. 185 Desahucio</span>
+        <span class="legal-ref">Art. 188 Despido</span>
+        <span class="legal-ref">Art. 196 Fondo Reserva</span>
+        <span class="legal-ref">Art. 216 Jubilación</span>
+        <span class="legal-ref">SBU 2026 = $482</span>
+      </div>
+    </div>
+
+    <div class="stats-row" id="stats-row">
+      <div class="stat-card"><div class="s-label">Liquidaciones guardadas</div><div class="s-value" id="stat-total">0</div></div>
+      <div class="stat-card" style="border-left-color: var(--verde-ok)"><div class="s-label">Última calculada</div><div class="s-value" id="stat-ultima">—</div></div>
+      <div class="stat-card" style="border-left-color: var(--amarillo-ec)"><div class="s-label">SBU Vigente 2026</div><div class="s-value">$482</div></div>
+      <div class="stat-card" style="border-left-color: var(--naranja-alerta)"><div class="s-label">Plazo registro SUT</div><div class="s-value">15 días</div></div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="dash-action da-primary" onclick="iniciarNuevo()">
+        <span class="da-icon">➕</span>
+        <h3>Nueva Liquidación</h3>
+        <p>Ingresar datos del trabajador y calcular</p>
+      </div>
+      <div class="dash-action" onclick="showPage('historial')">
+        <span class="da-icon">📁</span>
+        <h3>Historial</h3>
+        <p>Ver liquidaciones guardadas anteriormente</p>
+      </div>
+      <div class="dash-action" onclick="verActa()">
+        <span class="da-icon">📄</span>
+        <h3>Acta de Finiquito</h3>
+        <p>Ver y generar el documento oficial</p>
+      </div>
+      <div class="dash-action" onclick="imprimirActa()">
+        <span class="da-icon">🖨️</span>
+        <h3>Imprimir / Exportar</h3>
+        <p>Imprimir acta o guardar como PDF</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="icon">⚖️</span>
+        <h2>Marco Legal Aplicable</h2>
+      </div>
+      <div class="card-body">
+        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px;">
+          <div class="info-item"><div class="i-label">Art. 55 — Horas Extra</div><div class="i-val">Suplementarias 50% | Extraordinarias 100%</div></div>
+          <div class="info-item"><div class="i-label">Art. 69 — Vacaciones</div><div class="i-val">15 días por año de servicio</div></div>
+          <div class="info-item"><div class="i-label">Art. 111 — Décimo Tercero</div><div class="i-val">Remuneración adicional anual (dic.)</div></div>
+          <div class="info-item"><div class="i-label">Art. 113 — Décimo Cuarto</div><div class="i-val">Basado en SBU vigente $482 (2026)</div></div>
+          <div class="info-item"><div class="i-label">Art. 184-185 — Desahucio</div><div class="i-val">25% × últimas remuneraciones × años</div></div>
+          <div class="info-item"><div class="i-label">Art. 188 — Despido Intempestivo</div><div class="i-val">Hasta 3 años: 3 rem. | +3 años: 1 rem/año</div></div>
+          <div class="info-item"><div class="i-label">Art. 196 — Fondo de Reserva</div><div class="i-val">8.33% del salario (desde el 2do año)</div></div>
+          <div class="info-item"><div class="i-label">Art. 216 — Jubilación Patronal</div><div class="i-val">≥25 años de servicio con el mismo empleador</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ FORMULARIO ═══════════ -->
+  <div id="page-formulario" class="page">
+    <div class="breadcrumb">
+      <span onclick="showPage('dashboard')">🏠 Inicio</span> › Nueva Liquidación
+    </div>
+
+    <div class="progress-steps">
+      <div class="step active">
+        <div class="step-num">1</div>
+        <div class="step-label">Datos del Trabajador</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-label">Valores Pendientes</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-label">Causal de Salida</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-label">Resultado</div>
+      </div>
+    </div>
+
+    <form id="form-liquidacion" onsubmit="calcular(event)">
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-header"><span class="icon">👤</span><h2>Datos del Trabajador</h2></div>
+      <div class="card-body">
+
+        <div class="form-section">
+          <div class="section-title">Información Personal</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nombre Completo <span class="req">*</span></label>
+              <input type="text" id="nombre" placeholder="Ej: Juan Carlos Pérez Mora" required>
+            </div>
+            <div class="form-group">
+              <label>N° de Cédula <span class="req">*</span></label>
+              <input type="text" id="cedula" placeholder="1700000000" maxlength="10" required>
+            </div>
+            <div class="form-group">
+              <label>Cargo / Función <span class="req">*</span></label>
+              <input type="text" id="cargo" placeholder="Ej: Analista Contable" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-title">Datos del Empleador</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Razón Social / Empleador <span class="req">*</span></label>
+              <input type="text" id="empleador" placeholder="Ej: Empresa XYZ S.A." required>
+            </div>
+            <div class="form-group">
+              <label>RUC del Empleador</label>
+              <input type="text" id="ruc" placeholder="1791234567001" maxlength="13">
+            </div>
+            <div class="form-group">
+              <label>Representante Legal</label>
+              <input type="text" id="representante" placeholder="Nombre del representante legal">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-title">Período Laboral</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Fecha de Ingreso <span class="req">*</span></label>
+              <input type="date" id="fecha-ingreso" required onchange="calcularPeriodo()">
+            </div>
+            <div class="form-group">
+              <label>Fecha de Salida <span class="req">*</span></label>
+              <input type="date" id="fecha-salida" required onchange="calcularPeriodo()">
+            </div>
+            <div class="form-group">
+              <label>Tipo de Contrato</label>
+              <select id="tipo-contrato">
+                <option value="indefinido">Indefinido</option>
+                <option value="fijo">Plazo Fijo</option>
+                <option value="eventual">Eventual</option>
+                <option value="prueba">Período de Prueba (90 días)</option>
+                <option value="obra">Por Obra o Servicio</option>
+                <option value="tiempo_parcial">Tiempo Parcial</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Jornada Laboral</label>
+              <select id="jornada">
+                <option value="completa">Jornada Completa (8h)</option>
+                <option value="parcial">Jornada Parcial</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:10px; padding:10px 14px; background:var(--azul-suave); border-radius:6px; font-size:12px; color:var(--azul-mdt); font-weight:600;" id="periodo-display">
+            📅 Seleccione las fechas para calcular el período trabajado
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-title">Remuneraciones</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Última Remuneración Mensual <span class="req">*</span><span class="art">Art. 95</span></label>
+              <div class="input-prefix">
+                <span>$</span>
+                <input type="number" id="sueldo" placeholder="0.00" step="0.01" min="482" required onchange="actualizarSueldo()">
+              </div>
+              <div class="numero-letras" id="sueldo-letras"></div>
+            </div>
+            <div class="form-group">
+              <label>Comisiones Promedio Mensuales</label>
+              <div class="input-prefix"><span>$</span><input type="number" id="comisiones" placeholder="0.00" step="0.01" min="0" value="0"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-header"><span class="icon">💰</span><h2>Valores Pendientes de Pago</h2></div>
+      <div class="card-body">
+        <div class="alert alert-info">
+          <span class="alert-icon">ℹ️</span>
+          <div class="alert-content">
+            <div class="alert-title">Ingreso de valores</div>
+            Si algunos de estos rubros ya fueron pagados parcialmente, ingrese únicamente el valor pendiente. Deje en 0 si no aplica o ya fue cancelado.
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Horas Suplementarias Pendientes <span class="art">Art. 55</span></label>
+            <input type="number" id="h-suple" placeholder="0" min="0" step="1" value="0">
+            <div class="numero-letras">+50% del valor hora normal</div>
+          </div>
+          <div class="form-group">
+            <label>Horas Extraordinarias Pendientes <span class="art">Art. 55</span></label>
+            <input type="number" id="h-extra" placeholder="0" min="0" step="1" value="0">
+            <div class="numero-letras">+100% del valor hora (noct./feriado)</div>
+          </div>
+          <div class="form-group">
+            <label>Vacaciones No Gozadas (días) <span class="art">Art. 69</span></label>
+            <input type="number" id="vac-dias" placeholder="0" min="0" step="0.5" value="0">
+          </div>
+          <div class="form-group">
+            <label>Fondos de Reserva Pendientes <span class="art">Art. 196</span></label>
+            <div class="input-prefix"><span>$</span><input type="number" id="fondo-reserva" placeholder="0.00" step="0.01" min="0" value="0"></div>
+          </div>
+          <div class="form-group">
+            <label>Décimo Tercero Acumulado (período) <span class="art">Art. 111</span></label>
+            <div class="input-prefix"><span>$</span><input type="number" id="decimo-tercero" placeholder="0.00" step="0.01" min="0" value="0"></div>
+          </div>
+          <div class="form-group">
+            <label>Décimo Cuarto Acumulado (período) <span class="art">Art. 113</span></label>
+            <div class="input-prefix"><span>$</span><input type="number" id="decimo-cuarto" placeholder="0.00" step="0.01" min="0" value="0"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-header"><span class="icon">📋</span><h2>Causal de Terminación Laboral</h2></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Causal de Salida <span class="req">*</span><span class="art">Art. 169-188</span></label>
+            <select id="causal" required onchange="actualizarCausal()">
+              <option value="">— Seleccione la causal —</option>
+              <option value="renuncia">Renuncia Voluntaria</option>
+              <option value="desahucio">Desahucio (Art. 184-185)</option>
+              <option value="despido">Despido Intempestivo (Art. 188)</option>
+              <option value="visto-trabajador">Visto Bueno a favor del Trabajador (Art. 173)</option>
+              <option value="visto-empleador">Visto Bueno a favor del Empleador (Art. 172)</option>
+              <option value="mutuo-acuerdo">Mutuo Acuerdo (Art. 169)</option>
+              <option value="fin-contrato">Fin de Contrato a Plazo Fijo</option>
+              <option value="prueba">Período de Prueba</option>
+              <option value="jubilacion">Jubilación Patronal (Art. 216)</option>
+              <option value="fallecimiento">Fallecimiento del Trabajador</option>
+            </select>
+          </div>
+        </div>
+        <div id="causal-info" style="margin-top:12px;"></div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button type="submit" class="btn btn-primary btn-lg">🧮 Calcular Liquidación</button>
+      <button type="button" class="btn btn-outline" onclick="limpiarFormulario()">🔄 Limpiar Formulario</button>
+    </div>
+    </form>
+  </div>
+
+  <!-- ═══════════ RESULTADOS ═══════════ -->
+  <div id="page-resultados" class="page">
+    <div class="breadcrumb">
+      <span onclick="showPage('dashboard')">🏠 Inicio</span> › <span onclick="showPage('formulario')">Formulario</span> › Resultados
+    </div>
+    <div id="inspector-panel"></div>
+    <div id="resultados-container">
+      <div class="empty-state">
+        <div class="es-icon">🧮</div>
+        <h3>Sin resultados aún</h3>
+        <p>Complete el formulario y presione "Calcular Liquidación"</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ ACTA ═══════════ -->
+  <div id="page-acta" class="page">
+    <div class="breadcrumb">
+      <span onclick="showPage('dashboard')">🏠 Inicio</span> › Acta de Finiquito
+    </div>
+    <div id="acta-container">
+      <div class="empty-state">
+        <div class="es-icon">📄</div>
+        <h3>No hay acta generada</h3>
+        <p>Primero calcule una liquidación para generar el acta de finiquito</p>
+      </div>
+    </div>
+    <div class="btn-row" id="acta-buttons" style="display:none;">
+      <button class="btn btn-primary" onclick="imprimirActa()">🖨️ Imprimir / PDF</button>
+      <button class="btn btn-success" onclick="guardarLiquidacion()">💾 Guardar en Historial</button>
+      <button class="btn btn-outline" onclick="showPage('formulario')">📋 Nueva Liquidación</button>
+    </div>
+  </div>
+
+  <!-- ═══════════ HISTORIAL ═══════════ -->
+  <div id="page-historial" class="page">
+    <div class="breadcrumb">
+      <span onclick="showPage('dashboard')">🏠 Inicio</span> › Historial de Liquidaciones
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="icon">📁</span>
+        <h2>Historial de Liquidaciones Simuladas</h2>
+      </div>
+      <div class="card-body" id="historial-container">
+        <div class="empty-state">
+          <div class="es-icon">📭</div>
+          <h3>Historial vacío</h3>
+          <p>Las liquidaciones guardadas aparecerán aquí</p>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-danger btn-sm" onclick="limpiarHistorial()">🗑️ Borrar Historial</button>
+    </div>
+  </div>
+
+</div><!-- /app-container -->
+
+<script>
+// ═══════════════════════════════════════════════
+// CONSTANTES
+// ═══════════════════════════════════════════════
+const SBU_2026 = 482;
+let datosCalculo = null;
+let resultadoCalculo = null;
+
+// ═══════════════════════════════════════════════
+// NAVEGACIÓN
+// ═══════════════════════════════════════════════
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('tab-' + page)?.classList.add('active');
+  if (page === 'historial') renderHistorial();
+  if (page === 'dashboard') actualizarStats();
+}
+
+function iniciarNuevo() {
+  showPage('formulario');
+}
+
+function verActa() {
+  if (!resultadoCalculo) {
+    showPage('formulario');
+    return;
+  }
+  showPage('acta');
+}
+
+// ═══════════════════════════════════════════════
+// PERÍODO LABORAL
+// ═══════════════════════════════════════════════
+function calcularPeriodo() {
+  const ing = document.getElementById('fecha-ingreso').value;
+  const sal = document.getElementById('fecha-salida').value;
+  const disp = document.getElementById('periodo-display');
+  if (!ing || !sal) return;
+
+  const fi = new Date(ing);
+  const fs = new Date(sal);
+  if (fs <= fi) {
+    disp.innerHTML = '⚠️ La fecha de salida debe ser posterior a la de ingreso';
+    disp.style.background = 'var(--rojo-suave)';
+    disp.style.color = 'var(--rojo-ec)';
+    return;
+  }
+
+  const { anios, meses, dias, totalDias } = getPeriodo(fi, fs);
+  disp.style.background = 'var(--azul-suave)';
+  disp.style.color = 'var(--azul-mdt)';
+  disp.innerHTML = `📅 Período: <strong>${anios} año(s), ${meses} mes(es), ${dias} día(s)</strong> | Total: ${totalDias} días`;
+}
+
+function getPeriodo(fi, fs) {
+  let anios = fs.getFullYear() - fi.getFullYear();
+  let meses = fs.getMonth() - fi.getMonth();
+  let dias = fs.getDate() - fi.getDate();
+  if (dias < 0) { meses--; dias += 30; }
+  if (meses < 0) { anios--; meses += 12; }
+  const totalDias = Math.floor((fs - fi) / (1000 * 60 * 60 * 24));
+  const totalAnios = totalDias / 365.25;
+  return { anios, meses, dias, totalDias, totalAnios };
+}
+
+// ═══════════════════════════════════════════════
+// ACTUALIZAR SUELDO
+// ═══════════════════════════════════════════════
+function actualizarSueldo() {
+  const s = parseFloat(document.getElementById('sueldo').value) || 0;
+  document.getElementById('sueldo-letras').textContent = s > 0 ? `Valor hora: $${(s / 240).toFixed(4)}` : '';
+}
+
+// ═══════════════════════════════════════════════
+// CAUSAL INFO
+// ═══════════════════════════════════════════════
+const causalInfo = {
+  'renuncia': { tipo: 'info', titulo: 'Renuncia Voluntaria', desc: 'El trabajador decide voluntariamente dar por terminado el contrato. No genera indemnización ni desahucio. Solo proceden haberes pendientes.' },
+  'desahucio': { tipo: 'warning', titulo: 'Desahucio (Art. 184-185)', desc: 'Notificación previa de 15 días para terminar el contrato. Genera pago de desahucio: 25% de última remuneración × años de servicio.' },
+  'despido': { tipo: 'danger', titulo: 'Despido Intempestivo (Art. 188)', desc: 'Terminación unilateral sin causa legal. Genera indemnización: hasta 3 años = 3 rem., más de 3 años = 1 rem. por año (máx. 25 rem.).' },
+  'visto-trabajador': { tipo: 'warning', titulo: 'Visto Bueno a favor del Trabajador (Art. 173)', desc: 'El trabajador obtiene visto bueno por falta del empleador. Equivale a despido intempestivo en derechos.' },
+  'visto-empleador': { tipo: 'info', titulo: 'Visto Bueno a favor del Empleador (Art. 172)', desc: 'El empleador obtiene visto bueno por falta del trabajador. No genera indemnización ni desahucio.' },
+  'mutuo-acuerdo': { tipo: 'info', titulo: 'Mutuo Acuerdo (Art. 169 #2)', desc: 'Acuerdo bilateral para terminar la relación. No genera indemnización adicional. Solo haberes pendientes.' },
+  'fin-contrato': { tipo: 'info', titulo: 'Fin de Contrato a Plazo Fijo', desc: 'Vencimiento del plazo estipulado. No genera indemnización si el plazo era menor a 1 año.' },
+  'prueba': { tipo: 'info', titulo: 'Período de Prueba', desc: 'Terminación durante los primeros 90 días. No genera indemnización ni desahucio.' },
+  'jubilacion': { tipo: 'warning', titulo: 'Jubilación Patronal (Art. 216)', desc: '⚠️ Requiere cálculo actuarial especializado. Se activa con 25 años de servicio continuo. Consulte al área jurídica.' },
+  'fallecimiento': { tipo: 'danger', titulo: 'Fallecimiento del Trabajador', desc: 'Se liquidan todos los haberes a los beneficiarios de ley (cónyuge, hijos). No genera indemnización por despido.' }
+};
+
+function actualizarCausal() {
+  const val = document.getElementById('causal').value;
+  const cont = document.getElementById('causal-info');
+  if (!val || !causalInfo[val]) { cont.innerHTML = ''; return; }
+  const ci = causalInfo[val];
+  cont.innerHTML = `
+    <div class="alert alert-${ci.tipo}">
+      <span class="alert-icon">${ci.tipo === 'danger' ? '🚨' : ci.tipo === 'warning' ? '⚠️' : 'ℹ️'}</span>
+      <div class="alert-content">
+        <div class="alert-title">${ci.titulo}</div>
+        ${ci.desc}
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════
+// CÁLCULO PRINCIPAL
+// ═══════════════════════════════════════════════
+function calcular(e) {
+  e.preventDefault();
+
+  const ing = document.getElementById('fecha-ingreso').value;
+  const sal = document.getElementById('fecha-salida').value;
+  const fi = new Date(ing);
+  const fs = new Date(sal);
+
+  if (fs <= fi) {
+    alert('⚠️ La fecha de salida debe ser posterior a la fecha de ingreso.');
+    return;
+  }
+
+  const { anios, meses, dias, totalDias, totalAnios } = getPeriodo(fi, fs);
+  const sueldo = parseFloat(document.getElementById('sueldo').value) || 0;
+  const comisiones = parseFloat(document.getElementById('comisiones').value) || 0;
+  const hSuple = parseFloat(document.getElementById('h-suple').value) || 0;
+  const hExtra = parseFloat(document.getElementById('h-extra').value) || 0;
+  const vacDias = parseFloat(document.getElementById('vac-dias').value) || 0;
+  const fondoReservaIngresado = parseFloat(document.getElementById('fondo-reserva').value) || 0;
+  const decimoTerceroIng = parseFloat(document.getElementById('decimo-tercero').value) || 0;
+  const decimoCuartoIng = parseFloat(document.getElementById('decimo-cuarto').value) || 0;
+  const causal = document.getElementById('causal').value;
+  const remuneracionTotal = sueldo + comisiones;
+
+  // Días del período parcial del mes de salida
+  const diasUltimoMes = fs.getDate();
+  const diasParciales = dias > 0 ? dias : (meses === 0 && anios === 0 ? totalDias : dias);
+
+  // ── A. Sueldo proporcional pendiente (días no pagados del último mes)
+  // Calcular días trabajados en el mes de salida
+  const diaIngresoEfectivo = (anios === 0 && meses === 0) ? 0 : 0; // simplificado
+  const diasTrabajosMesActual = fs.getDate() - 1; // días del mes hasta la fecha de salida
+  const sueldoPendiente = (sueldo / 30) * (dias > 0 ? dias : (anios === 0 && meses === 0 ? totalDias : 0));
+
+  // ── B. Horas suplementarias (Art. 55, 50% recargo)
+  const valorHora = sueldo / 240;
+  const valorHSuple = valorHora * 1.5 * hSuple;
+
+  // ── C. Horas extraordinarias (Art. 55, 100% recargo)
+  const valorHExtra = valorHora * 2 * hExtra;
+
+  // ── D. Décimo tercero proporcional (Art. 111)
+  // Si el usuario ingresó un valor, se usa ese; si no, se calcula proporcional
+  let decimoTercero = decimoTerceroIng;
+  let decimoTerceroCalc = false;
+  if (decimoTercero === 0) {
+    // Calcular proporcional por los meses del año en curso hasta la fecha de salida
+    const mesesAnio = fs.getMonth() + 1 + (fs.getDate() > 0 ? 1/30 : 0);
+    decimoTercero = (remuneracionTotal / 12) * Math.min(mesesAnio, 12);
+    decimoTerceroCalc = true;
+  }
+
+  // ── E. Décimo cuarto proporcional (Art. 113) — SBU 2026 = $482
+  let decimoCuarto = decimoCuartoIng;
+  let decimoCuartoCalc = false;
+  if (decimoCuarto === 0) {
+    const mesesAnio2 = fs.getMonth() + 1;
+    decimoCuarto = (SBU_2026 / 12) * Math.min(mesesAnio2, 12);
+    decimoCuartoCalc = true;
+  }
+
+  // ── F. Vacaciones (Art. 69) — Días pendientes
+  // Si ingresó días pendientes manualmente, se calcula su valor
+  // También calculamos proporcional si no se ingresó
+  let vacaciones = 0;
+  let vacacionesCalc = false;
+  if (vacDias > 0) {
+    vacaciones = (sueldo / 30) * vacDias;
+  } else {
+    // Proporcional: 15 días por año = 1.25 días/mes
+    const mesesServicio = anios * 12 + meses;
+    const diasVacProporcionales = mesesServicio * 1.25;
+    vacaciones = (sueldo / 30) * diasVacProporcionales;
+    vacacionesCalc = true;
+  }
+
+  // ── G. Fondo de reserva (Art. 196) — Solo si supera 1 año
+  let fondoReserva = fondoReservaIngresado;
+  let fondoReservaCalc = false;
+  let noAplicaFondo = false;
+  if (totalAnios < 1) {
+    fondoReserva = 0;
+    noAplicaFondo = true;
+  } else if (fondoReservaIngresado === 0) {
+    fondoReserva = remuneracionTotal * 0.0833;
+    fondoReservaCalc = true;
+  }
+
+  // ── H. Desahucio (Art. 184-185)
+  let desahucio = 0;
+  let desahucioAplica = false;
+  if (causal === 'desahucio') {
+    desahucio = 0.25 * remuneracionTotal * Math.ceil(totalAnios);
+    desahucioAplica = true;
+  }
+
+  // ── I. Indemnización por despido intempestivo (Art. 188)
+  let indemnizacion = 0;
+  let indemnizacionAplica = false;
+  let indemnizacionDesc = '';
+  if (causal === 'despido' || causal === 'visto-trabajador') {
+    if (totalAnios <= 3) {
+      indemnizacion = remuneracionTotal * 3;
+      indemnizacionDesc = '3 remuneraciones (hasta 3 años de servicio)';
+    } else {
+      const aniosCont = Math.ceil(totalAnios);
+      indemnizacion = Math.min(remuneracionTotal * aniosCont, remuneracionTotal * 25);
+      indemnizacionDesc = `${aniosCont} remuneración(es) por año (máx. 25) = $${indemnizacion.toFixed(2)}`;
+    }
+    indemnizacionAplica = true;
+  }
+
+  // ── J. Jubilación patronal (Art. 216)
+  const esJubilacion = causal === 'jubilacion';
+
+  // ══ TOTAL ══
+  const total = sueldoPendiente + valorHSuple + valorHExtra + decimoTercero +
+    decimoCuarto + vacaciones + fondoReserva + desahucio + indemnizacion;
+
+  // ══ GUARDAR DATOS ══
+  datosCalculo = {
+    nombre: document.getElementById('nombre').value,
+    cedula: document.getElementById('cedula').value,
+    cargo: document.getElementById('cargo').value,
+    empleador: document.getElementById('empleador').value,
+    ruc: document.getElementById('ruc').value,
+    representante: document.getElementById('representante').value,
+    fechaIngreso: ing,
+    fechaSalida: sal,
+    tipoContrato: document.getElementById('tipo-contrato').value,
+    jornada: document.getElementById('jornada').value,
+    causal, sueldo, comisiones, remuneracionTotal,
+    hSuple, hExtra, vacDias, fondoReservaIngresado, decimoTerceroIng, decimoCuartoIng,
+    anios, meses, dias, totalDias, totalAnios
+  };
+
+  resultadoCalculo = {
+    sueldoPendiente, valorHSuple, valorHExtra,
+    decimoTercero, decimoCuarto, vacaciones, fondoReserva,
+    desahucio, indemnizacion, total,
+    noAplicaFondo, desahucioAplica, indemnizacionAplica, indemnizacionDesc,
+    decimoTerceroCalc, decimoCuartoCalc, vacacionesCalc, fondoReservaCalc, esJubilacion,
+    causal, valorHora
+  };
+
+  mostrarResultados();
+  generarActa();
+  showPage('resultados');
+}
+
+// ═══════════════════════════════════════════════
+// MOSTRAR RESULTADOS
+// ═══════════════════════════════════════════════
+function mostrarResultados() {
+  const d = datosCalculo;
+  const r = resultadoCalculo;
+
+  // Inspector alerts
+  const alertas = generarAlertas(d, r);
+  const inspEl = document.getElementById('inspector-panel');
+  if (alertas.length > 0) {
+    inspEl.innerHTML = `
+      <div class="inspector-panel">
+        <div class="inspector-avatar">👮</div>
+        <div class="inspector-content" style="width:100%">
+          <h3>🔍 Inspector del Trabajo — Verificación Automática</h3>
+          <p>Revisión de la liquidación según el Código del Trabajo del Ecuador:</p>
+          <div class="inspector-alerts">
+            ${alertas.map(a => `<div class="inspector-alert ${a.tipo}">${a.msg}</div>`).join('')}
+          </div>
+        </div>
+      </div>`;
+  } else {
+    inspEl.innerHTML = `
+      <div class="inspector-panel">
+        <div class="inspector-avatar">👮</div>
+        <div class="inspector-content">
+          <h3>✅ Inspector del Trabajo</h3>
+          <p>Liquidación sin observaciones detectadas. Proceder con el acta de finiquito.</p>
+        </div>
+      </div>`;
+  }
+
+  // Tabla de resultados
+  const rows = [
+    { concepto: 'Sueldo/Salario Proporcional Pendiente', ref: 'Art. 95', valor: r.sueldoPendiente, nota: `${d.dias} días × ($${d.sueldo.toFixed(2)}/30)` },
+    { concepto: 'Horas Suplementarias (×1.5)', ref: 'Art. 55', valor: r.valorHSuple, nota: d.hSuple > 0 ? `${d.hSuple}h × $${r.valorHora.toFixed(4)} × 1.5` : '0 horas pendientes' },
+    { concepto: 'Horas Extraordinarias (×2)', ref: 'Art. 55', valor: r.valorHExtra, nota: d.hExtra > 0 ? `${d.hExtra}h × $${r.valorHora.toFixed(4)} × 2` : '0 horas pendientes' },
+    { concepto: 'Décimo Tercero Proporcional', ref: 'Art. 111', valor: r.decimoTercero, nota: r.decimoTerceroCalc ? 'Calculado automáticamente' : 'Valor ingresado' },
+    { concepto: 'Décimo Cuarto Proporcional', ref: 'Art. 113', valor: r.decimoCuarto, nota: `SBU $${SBU_2026}` + (r.decimoCuartoCalc ? ' - Calculado automát.' : ' - Valor ingresado') },
+    { concepto: 'Vacaciones No Gozadas', ref: 'Art. 69', valor: r.vacaciones, nota: d.vacDias > 0 ? `${d.vacDias} días pendientes` : 'Proporcional calculado' },
+    { concepto: 'Fondo de Reserva', ref: 'Art. 196', valor: r.fondoReserva, nota: r.noAplicaFondo ? '⚠️ No aplica: menos de 1 año' : (r.fondoReservaCalc ? '8.33% mensual calc.' : 'Valor ingresado') },
+    { concepto: 'Desahucio', ref: 'Art. 184-185', valor: r.desahucio, nota: r.desahucioAplica ? `25% × $${d.remuneracionTotal.toFixed(2)} × ${Math.ceil(d.totalAnios)} año(s)` : '⚠️ No aplica por causal seleccionada' },
+    { concepto: 'Indemnización por Despido Intempestivo', ref: 'Art. 188', valor: r.indemnizacion, nota: r.indemnizacionAplica ? r.indemnizacionDesc : '⚠️ No aplica por causal seleccionada' },
+  ];
+
+  let tbody = rows.map(row => {
+    const naClass = row.valor === 0 ? 'na' : '';
+    const montoClass = row.valor > 0 ? 'positivo' : '';
+    return `
+      <tr>
+        <td><strong>${row.concepto}</strong><div class="art-ref">${row.ref}</div></td>
+        <td class="${naClass}">${row.nota}</td>
+        <td class="monto ${montoClass}">$${row.valor.toFixed(2)}</td>
+      </tr>`;
+  }).join('');
+
+  document.getElementById('resultados-container').innerHTML = `
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-header"><span class="icon">👤</span><h2>Trabajador: ${d.nombre}</h2></div>
+      <div class="card-body">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:0;">
+          <div class="info-item"><div class="i-label">Cédula</div><div class="i-val">${d.cedula}</div></div>
+          <div class="info-item"><div class="i-label">Cargo</div><div class="i-val">${d.cargo}</div></div>
+          <div class="info-item"><div class="i-label">Período</div><div class="i-val">${d.anios}a ${d.meses}m ${d.dias}d (${d.totalDias} días)</div></div>
+          <div class="info-item"><div class="i-label">Remuneración</div><div class="i-val">$${d.remuneracionTotal.toFixed(2)}</div></div>
+          <div class="info-item"><div class="i-label">Causal</div><div class="i-val">${getCausalLabel(d.causal)}</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="icon">🧮</span><h2>Detalle de la Liquidación</h2></div>
+      <div class="card-body" style="padding:0;">
+        <div style="overflow-x:auto;">
+          <table class="result-tabla">
+            <thead>
+              <tr><th>Concepto</th><th>Detalle</th><th style="text-align:right;">Valor</th></tr>
+            </thead>
+            <tbody>${tbody}</tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td colspan="2">🏆 TOTAL A RECIBIR POR EL TRABAJADOR</td>
+                <td class="monto" style="color:var(--amarillo-ec); font-size:18px;">$${r.total.toFixed(2)}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        ${r.esJubilacion ? `<div class="alert alert-warning" style="margin:16px;"><span class="alert-icon">⚠️</span><div class="alert-content"><div class="alert-title">Jubilación Patronal — Cálculo Actuarial Requerido (Art. 216)</div>Este rubro requiere un cálculo actuarial especializado. Consulte con el Ministerio del Trabajo y un actuario certificado. El valor no está incluido en el total.</div></div>` : ''}
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="verActa()">📄 Ver Acta de Finiquito</button>
+      <button class="btn btn-success" onclick="guardarLiquidacion()">💾 Guardar en Historial</button>
+      <button class="btn btn-outline" onclick="showPage('formulario')">📋 Nueva Liquidación</button>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════
+// ALERTAS DEL INSPECTOR
+// ═══════════════════════════════════════════════
+function generarAlertas(d, r) {
+  const alertas = [];
+  const hoy = new Date();
+  const salida = new Date(d.fechaSalida);
+  const diasDesde = Math.floor((hoy - salida) / (1000 * 60 * 60 * 24));
+
+  if (diasDesde > 15) {
+    alertas.push({ tipo: 'ia-error', msg: `🚨 ERROR: El acta tiene ${diasDesde} días de retraso. El Código del Trabajo exige registro en SUT dentro de los 15 días. Posible contingencia laboral y multas.` });
+  } else if (diasDesde > 10) {
+    alertas.push({ tipo: 'ia-warn', msg: `⚠️ ADVERTENCIA: Plazo crítico — quedan ${15 - diasDesde} día(s) para registrar en el SUT. Cumpla la obligación antes del vencimiento (Art. 590 CT).` });
+  } else {
+    alertas.push({ tipo: 'ia-ok', msg: `✅ Dentro del plazo legal de 15 días para registro en SUT (han transcurrido ${diasDesde} días).` });
+  }
+
+  if (r.noAplicaFondo) {
+    alertas.push({ tipo: 'ia-warn', msg: `⚠️ No aplica Fondo de Reserva: el trabajador tiene ${d.anios} año(s) de servicio. Este beneficio se activa a partir del segundo año (Art. 196 CT).` });
+  }
+
+  if (!r.indemnizacionAplica && d.causal !== 'despido' && d.causal !== 'visto-trabajador') {
+    alertas.push({ tipo: 'ia-ok', msg: `ℹ️ La causal "${getCausalLabel(d.causal)}" no genera indemnización por despido intempestivo (Art. 188 CT). Solo aplican haberes pendientes.` });
+  }
+
+  if (!r.desahucioAplica && d.causal !== 'desahucio') {
+    alertas.push({ tipo: 'ia-ok', msg: `ℹ️ La causal seleccionada no genera desahucio (Art. 184-185 CT). El desahucio aplica únicamente cuando el empleador notifica al trabajador o viceversa.` });
+  }
+
+  if (d.sueldo < SBU_2026) {
+    alertas.push({ tipo: 'ia-error', msg: `🚨 ERROR DETECTADO: La remuneración ingresada ($${d.sueldo.toFixed(2)}) es inferior al SBU 2026 ($${SBU_2026}). Posible infracción al Art. 117 CT. Revisar antes de emitir el acta.` });
+  }
+
+  if (d.causal === 'jubilacion' && d.totalAnios < 25) {
+    alertas.push({ tipo: 'ia-error', msg: `🚨 Jubilación Patronal: el trabajador tiene ${d.totalAnios.toFixed(1)} años de servicio. El Art. 216 CT requiere mínimo 25 años con el mismo empleador. Verificar requisitos.` });
+  }
+
+  if (d.totalDias < 90 && d.causal === 'prueba') {
+    alertas.push({ tipo: 'ia-ok', msg: `✅ Período de prueba: ${d.totalDias} días. El Art. 15 CT establece un máximo de 90 días. Dentro del rango legal.` });
+  }
+
+  if (d.tipoContrato === 'indefinido' && d.causal === 'fin-contrato') {
+    alertas.push({ tipo: 'ia-error', msg: `🚨 INCONSISTENCIA: Un contrato indefinido no puede terminar por "fin de contrato". Verifique la causal o el tipo de contrato. Posible contingencia laboral.` });
+  }
+
+  return alertas;
+}
+
+// ═══════════════════════════════════════════════
+// GENERAR ACTA
+// ═══════════════════════════════════════════════
+function generarActa() {
+  if (!datosCalculo || !resultadoCalculo) return;
+  const d = datosCalculo;
+  const r = resultadoCalculo;
+  const hoy = new Date();
+  const numActa = 'SUT-' + hoy.getFullYear() + '-' + String(hoy.getMonth()+1).padStart(2,'0') + String(Math.floor(Math.random()*99999)).padStart(5,'0');
+
+  const rows = [
+    ['Sueldo/Salario Proporcional Pendiente', 'Art. 95', r.sueldoPendiente],
+    ['Horas Suplementarias (50% recargo)', 'Art. 55', r.valorHSuple],
+    ['Horas Extraordinarias (100% recargo)', 'Art. 55', r.valorHExtra],
+    ['Décimo Tercer Sueldo Proporcional', 'Art. 111', r.decimoTercero],
+    ['Décimo Cuarto Sueldo Proporcional', 'Art. 113', r.decimoCuarto],
+    ['Vacaciones No Gozadas', 'Art. 69', r.vacaciones],
+    ['Fondo de Reserva', 'Art. 196', r.fondoReserva],
+    ['Desahucio', 'Art. 184-185', r.desahucio],
+    ['Indemnización por Despido Intempestivo', 'Art. 188', r.indemnizacion],
+  ].filter(row => row[2] > 0);
+
+  const tbody = rows.map(([c, ref, val]) => `
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px 12px;font-size:12px;">${c}</td>
+      <td style="padding:8px 12px;font-size:11px;color:#005BAA;font-weight:600;">${ref}</td>
+      <td style="padding:8px 12px;font-size:13px;font-weight:700;text-align:right;color:#1A7A4A;">$${val.toFixed(2)}</td>
+    </tr>`).join('');
+
+  document.getElementById('acta-container').innerHTML = `
+    <div class="acta" id="acta-doc">
+      <div class="acta-header">
+        <div class="acta-logo-box">
+          <div class="flag">🇪🇨</div>
+          <div class="inst">MINISTERIO<br>DEL TRABAJO</div>
+        </div>
+        <div class="acta-header-text">
+          <div class="sut-badge">SUT — Sistema Único de Trabajo</div>
+          <h2>ACTA DE FINIQUITO<br>LIQUIDACIÓN DE HABERES</h2>
+          <p>República del Ecuador · Código del Trabajo</p>
+        </div>
+        <div class="acta-num">
+          <div class="n-label">N° de Acta</div>
+          <div class="n-val">${numActa}</div>
+          <div class="n-fecha">${hoy.toLocaleDateString('es-EC', {day:'2-digit',month:'long',year:'numeric'})}</div>
+        </div>
+      </div>
+
+      <div class="acta-body">
+        <div class="acta-section">
+          <div class="acta-section-title"><span>🏢</span> Datos del Empleador</div>
+          <div class="info-grid">
+            <div class="info-item"><div class="i-label">Razón Social / Empleador</div><div class="i-val">${d.empleador || '—'}</div></div>
+            <div class="info-item"><div class="i-label">RUC</div><div class="i-val">${d.ruc || '—'}</div></div>
+            <div class="info-item"><div class="i-label">Representante Legal</div><div class="i-val">${d.representante || '—'}</div></div>
+            <div class="info-item"><div class="i-label">Tipo de Contrato</div><div class="i-val">${getTipoContrato(d.tipoContrato)}</div></div>
+          </div>
+        </div>
+
+        <div class="acta-section">
+          <div class="acta-section-title"><span>👤</span> Datos del Trabajador</div>
+          <div class="info-grid">
+            <div class="info-item"><div class="i-label">Nombre Completo</div><div class="i-val">${d.nombre}</div></div>
+            <div class="info-item"><div class="i-label">Número de Cédula</div><div class="i-val">${d.cedula}</div></div>
+            <div class="info-item"><div class="i-label">Cargo / Función</div><div class="i-val">${d.cargo}</div></div>
+            <div class="info-item"><div class="i-label">Última Remuneración</div><div class="i-val">$${d.remuneracionTotal.toFixed(2)}</div></div>
+            <div class="info-item"><div class="i-label">Fecha de Ingreso</div><div class="i-val">${formatFecha(d.fechaIngreso)}</div></div>
+            <div class="info-item"><div class="i-label">Fecha de Salida</div><div class="i-val">${formatFecha(d.fechaSalida)}</div></div>
+            <div class="info-item"><div class="i-label">Tiempo de Servicio</div><div class="i-val">${d.anios} año(s), ${d.meses} mes(es), ${d.dias} día(s)</div></div>
+            <div class="info-item"><div class="i-label">Total Días Trabajados</div><div class="i-val">${d.totalDias} días</div></div>
+          </div>
+        </div>
+
+        <div class="acta-section">
+          <div class="acta-section-title"><span>⚖️</span> Causal de Terminación</div>
+          <div class="causal-box">
+            <div class="causal-icon">📋</div>
+            <div>
+              <div class="c-title">Causal Legal</div>
+              <div class="c-val">${getCausalLabel(d.causal)}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="acta-section">
+          <div class="acta-section-title"><span>💰</span> Detalle de Valores a Liquidar</div>
+          <table style="width:100%;border-collapse:collapse;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;">
+            <thead style="background:var(--azul-mdt);color:white;">
+              <tr>
+                <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Concepto</th>
+                <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;">Base Legal</th>
+                <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;">Valor (USD)</th>
+              </tr>
+            </thead>
+            <tbody>${tbody}</tbody>
+          </table>
+          ${r.esJubilacion ? '<p style="font-size:11px;color:var(--naranja-alerta);margin-top:8px;">⚠️ Jubilación Patronal (Art. 216): Requiere cálculo actuarial. No incluido en el total.</p>' : ''}
+        </div>
+
+        <div class="acta-totales">
+          <div class="t-label">TOTAL A PAGAR AL TRABAJADOR</div>
+          <div class="t-monto">$${r.total.toFixed(2)}</div>
+          <div class="t-letras">${numeroALetras(r.total)} DÓLARES DE LOS ESTADOS UNIDOS DE AMÉRICA</div>
+        </div>
+
+        <div class="acta-section">
+          <div class="acta-section-title"><span>📋</span> Declaraciones</div>
+          <p style="font-size:12px;color:var(--gris-700);line-height:1.7;">
+            Las partes comparecientes, libre y voluntariamente, declaran que con el pago de los valores detallados en el presente documento, quedan definitivamente liquidadas y terminadas las obligaciones laborales derivadas de la relación de trabajo que existió entre las partes, sin que ninguna de ellas tenga reclamación pendiente de ninguna naturaleza contra la otra, de conformidad con lo establecido en el Código del Trabajo del Ecuador y la normativa aplicable.
+          </p>
+          <p style="font-size:11px;color:var(--gris-500);margin-top:8px;">
+            ⚠️ <strong>DOCUMENTO DE USO ACADÉMICO:</strong> Este acta fue generada con el Simulador SUT de fines educativos. No tiene validez legal. Para actas oficiales, acceda al Sistema Único de Trabajo en <em>trabajo.gob.ec</em>
+          </p>
+        </div>
+
+        <div class="firmas">
+          <div class="firma-box">
+            <div class="firma-linea"></div>
+            <strong>${d.representante || 'Representante Legal'}</strong>
+            <p>${d.empleador || 'Empleador'}</p>
+            <p style="font-size:10px;color:var(--gris-400);">Firma y Sello</p>
+          </div>
+          <div class="firma-box">
+            <div class="firma-linea"></div>
+            <strong>${d.nombre}</strong>
+            <p>Trabajador · C.I. ${d.cedula}</p>
+            <p style="font-size:10px;color:var(--gris-400);">Firma</p>
+          </div>
+        </div>
+
+        <div style="text-align:center;margin-top:24px;padding-top:16px;border-top:1px dashed var(--gris-300);">
+          <p style="font-size:11px;color:var(--gris-500);">
+            Emitido el ${hoy.toLocaleDateString('es-EC', {weekday:'long',day:'2-digit',month:'long',year:'numeric'})} | 
+            Quito, Ecuador | SUT Simulador Académico
+          </p>
+        </div>
+      </div>
+
+      <div class="acta-footer">
+        Ministerio del Trabajo del Ecuador · Sistema Único de Trabajo (SUT) · 
+        <strong>trabajo.gob.ec</strong> · 
+        🇪🇨 Simulador Académico — No válido como documento legal oficial
+      </div>
+    </div>
+  `;
+
+  document.getElementById('acta-buttons').style.display = 'flex';
+}
+
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+function getCausalLabel(c) {
+  const map = {
+    'renuncia': 'Renuncia Voluntaria',
+    'desahucio': 'Desahucio (Art. 184-185)',
+    'despido': 'Despido Intempestivo (Art. 188)',
+    'visto-trabajador': 'Visto Bueno a favor del Trabajador (Art. 173)',
+    'visto-empleador': 'Visto Bueno a favor del Empleador (Art. 172)',
+    'mutuo-acuerdo': 'Mutuo Acuerdo (Art. 169)',
+    'fin-contrato': 'Fin de Contrato a Plazo Fijo',
+    'prueba': 'Período de Prueba',
+    'jubilacion': 'Jubilación Patronal (Art. 216)',
+    'fallecimiento': 'Fallecimiento del Trabajador'
+  };
+  return map[c] || c;
+}
+
+function getTipoContrato(t) {
+  const map = {
+    'indefinido': 'Contrato Indefinido',
+    'fijo': 'Contrato a Plazo Fijo',
+    'eventual': 'Contrato Eventual',
+    'prueba': 'Período de Prueba',
+    'obra': 'Por Obra o Servicio',
+    'tiempo_parcial': 'Tiempo Parcial'
+  };
+  return map[t] || t;
+}
+
+function formatFecha(f) {
+  if (!f) return '—';
+  const d = new Date(f + 'T00:00:00');
+  return d.toLocaleDateString('es-EC', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+function numeroALetras(num) {
+  // Simplified number to words
+  const entero = Math.floor(num);
+  const cents = Math.round((num - entero) * 100);
+  const words = ['CERO','UNO','DOS','TRES','CUATRO','CINCO','SEIS','SIETE','OCHO','NUEVE',
+    'DIEZ','ONCE','DOCE','TRECE','CATORCE','QUINCE','DIECISÉIS','DIECISIETE','DIECIOCHO',
+    'DIECINUEVE','VEINTE'];
+  const tens = ['','DIEZ','VEINTE','TREINTA','CUARENTA','CINCUENTA','SESENTA','SETENTA','OCHENTA','NOVENTA'];
+  const hundreds = ['','CIENTO','DOSCIENTOS','TRESCIENTOS','CUATROCIENTOS','QUINIENTOS',
+    'SEISCIENTOS','SETECIENTOS','OCHOCIENTOS','NOVECIENTOS'];
+
+  function convertir(n) {
+    if (n === 0) return 'CERO';
+    if (n <= 20) return words[n];
+    if (n < 100) return tens[Math.floor(n/10)] + (n%10 ? ' Y ' + words[n%10] : '');
+    if (n === 100) return 'CIEN';
+    if (n < 1000) return hundreds[Math.floor(n/100)] + (n%100 ? ' ' + convertir(n%100) : '');
+    if (n < 10000) return (n < 2000 ? 'MIL' : convertir(Math.floor(n/1000)) + ' MIL') + (n%1000 ? ' ' + convertir(n%1000) : '');
+    return n.toString();
+  }
+
+  return convertir(entero) + (cents > 0 ? ` CON ${cents}/100` : '');
+}
+
+// ═══════════════════════════════════════════════
+// GUARDAR / HISTORIAL
+// ═══════════════════════════════════════════════
+function guardarLiquidacion() {
+  if (!datosCalculo || !resultadoCalculo) { alert('No hay liquidación calculada.'); return; }
+  const hist = JSON.parse(localStorage.getItem('sut_historial') || '[]');
+  const item = {
+    id: Date.now(),
+    fecha: new Date().toISOString(),
+    datos: datosCalculo,
+    resultado: resultadoCalculo
+  };
+  hist.unshift(item);
+  localStorage.setItem('sut_historial', JSON.stringify(hist.slice(0, 50)));
+  actualizarStats();
+  alert(`✅ Liquidación de "${datosCalculo.nombre}" guardada en el historial.`);
+}
+
+function renderHistorial() {
+  const hist = JSON.parse(localStorage.getItem('sut_historial') || '[]');
+  const cont = document.getElementById('historial-container');
+  if (!hist.length) {
+    cont.innerHTML = `<div class="empty-state"><div class="es-icon">📭</div><h3>Historial vacío</h3><p>Aún no se han guardado liquidaciones.</p></div>`;
+    return;
+  }
+  cont.innerHTML = hist.map((item, i) => {
+    const d = item.datos;
+    const r = item.resultado;
+    const fecha = new Date(item.fecha).toLocaleDateString('es-EC', {day:'2-digit',month:'short',year:'numeric'});
+    const ini = d.nombre ? d.nombre[0].toUpperCase() : '?';
+    return `
+      <div class="hist-item" onclick="cargarHistorial(${i})">
+        <div class="hist-avatar">${ini}</div>
+        <div class="hist-info">
+          <h3>${d.nombre}</h3>
+          <p>${d.cargo} | ${d.empleador}</p>
+          <span class="hist-causal">${getCausalLabel(d.causal)}</span>
+        </div>
+        <div style="text-align:right;">
+          <div class="hist-monto">$${r.total.toFixed(2)}</div>
+          <div class="hist-date">${fecha}</div>
+          <div style="margin-top:4px;"><span class="chip chip-${r.indemnizacionAplica ? 'danger' : r.desahucioAplica ? 'warn' : 'info'}">${r.indemnizacionAplica ? 'Despido' : r.desahucioAplica ? 'Desahucio' : 'Normal'}</span></div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarHistorial(${item.id})">🗑️</button>
+      </div>`;
+  }).join('');
+}
+
+function cargarHistorial(index) {
+  const hist = JSON.parse(localStorage.getItem('sut_historial') || '[]');
+  const item = hist[index];
+  if (!item) return;
+  datosCalculo = item.datos;
+  resultadoCalculo = item.resultado;
+  mostrarResultados();
+  generarActa();
+  showPage('resultados');
+}
+
+function eliminarHistorial(id) {
+  if (!confirm('¿Eliminar esta liquidación del historial?')) return;
+  let hist = JSON.parse(localStorage.getItem('sut_historial') || '[]');
+  hist = hist.filter(h => h.id !== id);
+  localStorage.setItem('sut_historial', JSON.stringify(hist));
+  renderHistorial();
+  actualizarStats();
+}
+
+function limpiarHistorial() {
+  if (!confirm('¿Borrar todo el historial? Esta acción no se puede deshacer.')) return;
+  localStorage.removeItem('sut_historial');
+  renderHistorial();
+  actualizarStats();
+}
+
+function actualizarStats() {
+  const hist = JSON.parse(localStorage.getItem('sut_historial') || '[]');
+  document.getElementById('stat-total').textContent = hist.length;
+  if (hist.length > 0) {
+    document.getElementById('stat-ultima').textContent = '$' + hist[0].resultado.total.toFixed(0);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// IMPRIMIR
+// ═══════════════════════════════════════════════
+function imprimirActa() {
+  if (!resultadoCalculo) { alert('Primero calcule una liquidación.'); return; }
+  showPage('acta');
+  setTimeout(() => window.print(), 300);
+}
+
+// ═══════════════════════════════════════════════
+// LIMPIAR FORMULARIO
+// ═══════════════════════════════════════════════
+function limpiarFormulario() {
+  if (!confirm('¿Limpiar todos los campos del formulario?')) return;
+  document.getElementById('form-liquidacion').reset();
+  document.getElementById('periodo-display').innerHTML = '📅 Seleccione las fechas para calcular el período trabajado';
+  document.getElementById('periodo-display').style.background = 'var(--azul-suave)';
+  document.getElementById('periodo-display').style.color = 'var(--azul-mdt)';
+  document.getElementById('causal-info').innerHTML = '';
+  document.getElementById('sueldo-letras').textContent = '';
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+actualizarStats();
+</script>
+</body>
+</html>
